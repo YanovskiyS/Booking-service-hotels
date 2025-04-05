@@ -4,6 +4,7 @@ from sqlalchemy import insert, select
 from watchfiles import awatch
 
 from src.database import async_session_maker, engine
+from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import Hotel, HotelPatch
 from src.api.dependencies import  PaginationDep
 from src.models.hotels import HotelsOrm
@@ -18,21 +19,13 @@ async def get_hotels(paginations: PaginationDep,
         ):
         per_page = paginations.per_page or 5
         async with async_session_maker() as session:
-            query = select(HotelsOrm)
-            if location:
-                query = query.filter(HotelsOrm.location.ilike(f"%{location}%"))
-            if title:
-                query = query.filter(HotelsOrm.title.ilike(f"%{title}%"))
-            query = (
-                query
-                .limit(per_page)
-                .offset(per_page * (paginations.page-1))
-            )
-            result = await session.execute(query)
-            hotels = result.scalars().all()
-            return hotels
+           return await HotelsRepository(session).get_all(location=location,
+                                                          title=title,
+                                                          limit=per_page,
+                                                          offset=per_page * (paginations.page - 1),)
 
-    #return hotels_[(paginations.page-1) * paginations.per_page: (paginations.page-1) * paginations.per_page + paginations.per_page]
+
+
 
 @router.post("")
 async def create_hotel(hotel_data: Hotel = Body(
@@ -46,12 +39,12 @@ async def create_hotel(hotel_data: Hotel = Body(
                                                             })):
 
     async with async_session_maker() as session:
-        add_hotel_stmt = insert(HotelsOrm).values(**hotel_data.model_dump())
-        print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-        await session.execute(add_hotel_stmt)
+        result = await HotelsRepository(session).add(hotel_data)
+        hotel = result.scalar()
+
         await session.commit()
 
-    return  {"status": "Ok"}
+    return  {"status": "Ok", "data": hotel}
 
 
 
