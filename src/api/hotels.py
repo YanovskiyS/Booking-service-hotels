@@ -39,9 +39,7 @@ async def create_hotel(hotel_data: Hotel = Body(
                                                             })):
 
     async with async_session_maker() as session:
-        result = await HotelsRepository(session).add(hotel_data)
-        hotel = result.scalar()
-
+        hotel = await HotelsRepository(session).add(hotel_data)
         await session.commit()
 
     return  {"status": "Ok", "data": hotel}
@@ -49,12 +47,12 @@ async def create_hotel(hotel_data: Hotel = Body(
 
 
 @router.put("/{hotel_id}")
-def full_update_hotel(hotel_id: int, hotel_data: Hotel):
-    global  hotels
-    for hotel in hotels:
-        if hotel["id"] == hotel_id:
-            hotel["title"] = hotel_data.title
-            hotel["name"] = hotel_data.name
+async def full_update_hotel(hotel_id: int, hotel_data: Hotel):
+    async with async_session_maker() as session:
+
+        await HotelsRepository(session).edit(hotel_data, id=hotel_id)
+        await session.commit()
+
     return {"status": "Ok"}
 
 
@@ -72,7 +70,8 @@ def partial_update_hotel(hotel_id: int, hotel_data: HotelPatch):
 
 
 @router.delete("/{hotel_id}")
-def delete_hotel(hotel_id: int):
-    global  hotels
-    hotels = [hotel for hotel in hotels if hotel["id"] != hotel_id]
-    return {"status": "Ok"}
+async def delete_hotel(hotel_id: int):
+   async with async_session_maker() as session:
+       await HotelsRepository(session).delete(id=hotel_id)
+       await session.commit()
+       return {"status": "Ok"}

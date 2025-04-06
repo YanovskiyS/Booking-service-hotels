@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 from sqlalchemy import select, func, insert, literal_column
 
 from src.database import engine
@@ -29,7 +30,22 @@ class HotelsRepository(BaseRepository):
         return result.scalars().all()
 
 
-    async def add(self, hotel_data: Hotel):
-        add_hotel_stmt = insert(HotelsOrm).values(**hotel_data.model_dump()).returning(HotelsOrm)
-        print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
-        return await self.session.execute(add_hotel_stmt)
+    async def add(self, data: BaseModel):
+        add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
+        #print(add_hotel_stmt.compile(engine, compile_kwargs={"literal_binds": True}))
+        result = await self.session.execute(add_data_stmt)
+        return result.scalars().one()
+
+    async def edit(self, data: BaseModel, **filter_by):
+        product_update = select(self.model).filter_by(**filter_by)
+        updated = await self.session.scalar(product_update)
+        updated.title = data.title
+        updated.location = data.location
+        await self.session.execute(product_update)
+
+    async def delete(self, **filter_by):
+        product_delete = select(self.model).filter_by(**filter_by)
+        deleted = await self.session.scalar(product_delete)
+        await self.session.delete(deleted)
+
+
