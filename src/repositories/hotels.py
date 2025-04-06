@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import select, func, insert, literal_column
+from sqlalchemy import select, func, insert, literal_column, delete, update
 
 from src.database import engine
 from src.models.hotels import HotelsOrm
@@ -16,7 +16,7 @@ class HotelsRepository(BaseRepository):
                       title,
                       limit,
                       offset):
-        query = select(HotelsOrm)
+        query = select(self.model)
         if location:
             query = query.filter(HotelsOrm.location.ilike(f"%{location}%"))
         if title:
@@ -29,6 +29,11 @@ class HotelsRepository(BaseRepository):
         result = await self.session.execute(query)
         return result.scalars().all()
 
+    async def get_by_id(self, hotel_id: int):
+        query = select(self.model).filter_by(id=hotel_id)
+        result = await self.session.execute(query)
+        return result.scalars().one_or_none()
+
 
     async def add(self, data: BaseModel):
         add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
@@ -36,16 +41,13 @@ class HotelsRepository(BaseRepository):
         result = await self.session.execute(add_data_stmt)
         return result.scalars().one()
 
-    async def edit(self, data: BaseModel, **filter_by):
-        product_update = select(self.model).filter_by(**filter_by)
-        updated = await self.session.scalar(product_update)
-        updated.title = data.title
-        updated.location = data.location
+    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by):
+        product_update = (update(self.model).filter_by(**filter_by)
+                          .values(data.model_dump(exclude_unset=exclude_unset)))
         await self.session.execute(product_update)
 
     async def delete(self, **filter_by):
-        product_delete = select(self.model).filter_by(**filter_by)
-        deleted = await self.session.scalar(product_delete)
-        await self.session.delete(deleted)
+        delete_stmt = delete(self.model).filter_by(**filter_by)
+        await self.session.execute(delete_stmt)
 
 
