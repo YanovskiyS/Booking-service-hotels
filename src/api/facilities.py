@@ -1,24 +1,28 @@
 from datetime import date
-
 from fastapi import Query, Body, APIRouter
+import json
 
+from watchfiles import awatch
+from fastapi_cache.decorator import cache
 
-from src.database import async_session_maker, engine
-from src.repositories.hotels import HotelsRepository
 from src.schemas.facilities import FacilityAdd
-from src.schemas.hotels import HotelPatch, HotelAdd
-from src.api.dependencies import PaginationDep, DBDep
+from src.api.dependencies import DBDep
+from src.tasks.tasks import test_tasks
 
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 @router.get("")
+#@cache(expire=10)
 async def get_facilities(db: DBDep):
     return await db.facilities.get_all()
 
 
+
 @router.post("")
-async def add_facility(facility_data: FacilityAdd, db: DBDep, ):
+async def add_facility(facility_data: FacilityAdd, db: DBDep):
     facility = await db.facilities.add(facility_data)
     await db.commit()
+
+    test_tasks.delay()
 
     return {"status": "ok", "data": facility}

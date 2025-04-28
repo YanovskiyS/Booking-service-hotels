@@ -1,6 +1,7 @@
 from datetime import date
 
 from fastapi import Query, Body, APIRouter
+from fastapi_cache.decorator import cache
 
 
 from src.database import async_session_maker, engine
@@ -12,6 +13,7 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("")
+#@cache(expire=10)
 async def get_hotels(paginations: PaginationDep,
                      db: DBDep,
                      date_from: date,
@@ -25,10 +27,7 @@ async def get_hotels(paginations: PaginationDep,
         return await db.hotels.get_filtered_by_time(date_from=date_from, date_to=date_to, location=location, title=title,
                                                     limit=per_page, offset=per_page * (paginations.page - 1),)
 
-'''location=location,
-title=title,
-limit=per_page,
-offset=per_page * (paginations.page - 1),'''
+
 
 @router.get("/{hotels_id}")
 async def get_hotel(hotel_id: int, db: DBDep):

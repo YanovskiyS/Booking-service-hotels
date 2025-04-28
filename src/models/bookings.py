@@ -3,7 +3,7 @@ from datetime import date
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String, ForeignKey
-from sqlalchemy.util import hybridproperty
+
 
 from src.database import Base
 

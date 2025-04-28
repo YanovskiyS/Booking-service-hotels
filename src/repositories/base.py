@@ -3,10 +3,12 @@ from sqlalchemy import select, delete, update
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.orm import selectinload
 
+from src.repositories.mappers.base import DataMapper
+
 
 class BaseRepository:
     model = None
-    schema: BaseModel = None
+    mapper: DataMapper = None
 
     def __init__(self, session):
         self.session = session
@@ -18,7 +20,7 @@ class BaseRepository:
             .filter_by(**filtered_by)
                  )
         result = await self.session.execute(query)
-        return [self.schema.model_validate(hotel, from_attributes=True) for hotel in result.scalars().all()]
+        return [self.mapper.map_to_domain_entity(model) for model in result.scalars().all()]
 
 
     async def get_all(self, *args, **kwargs):
@@ -28,28 +30,29 @@ class BaseRepository:
 
 
     async def get_one_or_none(self, **filter_by):
-        '''query = select(self.model).filter_by(**filter_by)'''
+
         query = (
             select(self.model)
-            .options(selectinload(self.model.facilities))
             .filter_by(**filter_by)
         )
         result = await self.session.execute(query)
+        model = result.scalars().one_or_none()
+        if model is None:
+            return None
 
-        return result.scalars().one_or_none()
+        return self.mapper.map_to_domain_entity(model)
 
     async def add(self, data: BaseModel):
         add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
         result = await self.session.execute(add_data_stmt)
         model = result.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)
+        return self.mapper.map_to_domain_entity(model)
 
-    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by):
+    async def edit(self, data: BaseModel, exclude_unset: bool = False, **filter_by)-> None:
         product_update = (update(self.model).filter_by(**filter_by)
-                          .values(data.model_dump(exclude_unset=exclude_unset))).returning(self.model)
-        result = await self.session.execute(product_update)
-        model = result.scalars().one()
-        return self.schema.model_validate(model, from_attributes=True)
+                          .values(data.model_dump(exclude_unset=exclude_unset)))
+        await self.session.execute(product_update)
+
 
     async def add_bulk(self, data: list[BaseModel]):
         add_data_stmt = insert(self.model).values([item.model_dump() for item in data])
