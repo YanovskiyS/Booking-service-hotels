@@ -13,7 +13,7 @@ router = APIRouter(prefix="/hotels", tags=["Отели"])
 
 
 @router.get("")
-#@cache(expire=10)
+@cache(expire=10)
 async def get_hotels(paginations: PaginationDep,
                      db: DBDep,
                      date_from: date,

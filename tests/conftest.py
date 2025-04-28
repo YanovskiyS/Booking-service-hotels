@@ -1,9 +1,17 @@
+
 from typing import Any, AsyncGenerator
+from unittest import mock
+
+from debugpy.adapter import access_token
+
+
+mock.patch("fastapi_cache.decorator.cache", lambda *args, **kwargs: lambda f: f).start()
 
 import pytest
 import json
+
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import True_
+
 
 from src.api.dependencies import get_db
 from src.config import settings
@@ -29,8 +37,6 @@ async def get_db_nul_pool():
 async def db():
     async for db in get_db_nul_pool():
         yield db
-
-
 
 
 app.dependency_overrides[get_db] = get_db_nul_pool
@@ -69,3 +75,16 @@ async def register_user(ac, setup_database):
                                                          "password": "123456",
                                                          "first_name": "Kot",
                                                          "last_name": "Pes"})
+
+
+@pytest.fixture(scope="session", autouse=True)
+async def authenticate_ac(ac, register_user):
+    result = await ac.post("/auth/login", json={"email": "kot@pes.ru",
+                                                         "password": "123456",
+                                                         "first_name": "Kot",
+                                                         "last_name": "Pes"})
+
+    assert result.cookies
+    assert result.cookies.get("access_token")
+    assert result.status_code == 200
+
