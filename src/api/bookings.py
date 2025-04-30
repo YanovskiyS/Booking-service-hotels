@@ -19,7 +19,7 @@ async def create_booking(db: DBDep, user_id: UserIdDep,  booking_data: BookingAd
     room = await db.rooms.get_one_or_none(id=booking_data.room_id)
     total_price = (booking_data.date_to - booking_data.date_from).days * room.price
     _booking_data = BookingAdd(user_id=user_id, price=total_price, **booking_data.model_dump())
-    booking = await db.bookings.add(_booking_data)
+    booking = await db.bookings.add_booking(_booking_data)
     await db.commit()
 
     return {"status": "Ok", "data": booking}
