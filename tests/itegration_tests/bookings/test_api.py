@@ -29,7 +29,7 @@ async def test_add_booking(room_id, date_from, date_to, status_code,
         assert "data" in res
 
 
-@pytest.fixture(scope="session", autouse=False)
+@pytest.fixture(scope="module", autouse=False)
 async def clean_specific_table():
     async with engine_null_pul.begin() as conn:
         table_name = "bookings"
