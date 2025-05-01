@@ -1,8 +1,7 @@
 from datetime import date
-
-from celery.worker.consumer.mingle import exception
+from fastapi import HTTPException
 from pydantic import BaseModel
-from sqlalchemy import update, delete, select, insert
+from sqlalchemy import select
 
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
@@ -30,16 +29,14 @@ class BookingsRepository(BaseRepository):
         result = await self.session.execute(query)
         return [self.mapper.map_to_domain_entity(booking) for booking in result.scalars().all()]
 
-    async def add_booking(self, data: BaseModel):
-        room_ids_for_booking = rooms_ids_for_booking(data.date_from, data.date_to)
+    async def add_booking(self, data: BaseModel, hotel_id: int):
+        room_ids_for_booking = rooms_ids_for_booking(data.date_from, data.date_to, hotel_id=hotel_id)
         result = await self.session.execute(room_ids_for_booking)
         if data.room_id in result.scalars().all():
-            add_data_stmt = insert(self.model).values(**data.model_dump()).returning(self.model)
-            result = await self.session.execute(add_data_stmt)
-            model = result.scalars().one()
-            return self.mapper.map_to_domain_entity(model)
+            new_booking = await self.add(data)
+            return new_booking
         else:
-            raise Exception
+            raise HTTPException(500)
 
 
 

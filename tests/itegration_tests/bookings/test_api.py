@@ -1,10 +1,6 @@
 import pytest
-from sqlalchemy import Table, text
-from sqlalchemy.testing.suite.test_reflection import metadata
 
-from src.database import engine_null_pul, Base, async_session_maker_null_pool
-from src.models.bookings import BookingsOrm
-from src.utils.db_manager import DBManager
+from tests.conftest import get_db_nul_pool
 
 
 @pytest.mark.parametrize("room_id, date_from, date_to, status_code",
@@ -31,10 +27,9 @@ async def test_add_booking(room_id, date_from, date_to, status_code,
 
 @pytest.fixture(scope="module", autouse=False)
 async def clean_specific_table():
-    async with engine_null_pul.begin() as conn:
-        table_name = "bookings"
-        table = Base.metadata.tables[table_name]
-        await conn.execute(table.delete())
+    async for _db in get_db_nul_pool():
+        await _db.bookings.delete()
+        await _db.commit()
 
 
 @pytest.mark.parametrize("room_id, date_from, date_to, quantity",

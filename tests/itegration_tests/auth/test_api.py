@@ -1,12 +1,47 @@
+import pytest
 
-
-
-async def test_register_user(ac):
-    resp = await ac.post("/auth/register", json={
-                "email": "user3@example.com",
-                "password": "string",
-                "first_name": "string",
-                "last_name": "string"
+@pytest.mark.parametrize(
+    "email, password, first_name, last_name, status_code",
+    [
+        ("k0t@pes.com", "1234", "string", "string", 200),
+        ("abcde", "1235", "string", "string", 422),
+        ("abcde@abc", "1235", "string", "string", 422),
+    ],
+)
+async def test_registration_flow(email, password, first_name, last_name, status_code, ac):
+    #/register
+    resp_reg = await ac.post("/auth/register", json={
+                "email": email,
+                "password": password,
+                "first_name": first_name,
+                "last_name": last_name
 })
 
-    assert resp.status_code == 200
+    assert resp_reg.status_code == status_code
+    if status_code != 200:
+        return
+
+    #/ login
+    resp_login = await ac.post("/auth/login", json={"email": email,
+                "password": password,
+                "first_name": first_name,
+                "last_name": last_name})
+
+    assert resp_login.status_code == 200
+    assert ac.cookies["access_token"]
+    assert "access_token" in resp_login.json()
+
+    #/ me
+
+    resp_me = await ac.get("/auth/me")
+    assert resp_me.status_code == 200
+    user = resp_me.json()
+    assert user["email"] == email
+    assert "id" in user
+    assert "password" not in user
+    assert "hashed_password" not in user
+
+    #/logout
+    resp_logout = await ac.post("/auth/logout")
+    assert resp_logout.status_code == 200
+    assert "access_token" not in ac.cookies

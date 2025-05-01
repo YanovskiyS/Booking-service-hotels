@@ -1,24 +1,20 @@
-
+# ruff: noqa: E402
 from typing import Any, AsyncGenerator
 from unittest import mock
-
-from debugpy.adapter import access_token
-
 
 mock.patch("fastapi_cache.decorator.cache", lambda *args, **kwargs: lambda f: f).start()
 
 import pytest
 import json
-
-from httpx import ASGITransport, AsyncClient
+from httpx import AsyncClient
 
 
 from src.api.dependencies import get_db
 from src.config import settings
-from src.database import Base, engine, engine_null_pul, async_session_maker, async_session_maker_null_pool
+from src.database import Base, engine_null_pul, async_session_maker_null_pool
 from src.main import app
-from src.models import *
-from src.schemas.hotels import Hotel, HotelAdd
+from src.models import * # noqa
+from src.schemas.hotels import HotelAdd
 from src.schemas.rooms import RoomAdd
 from src.utils.db_manager import DBManager
 
@@ -69,22 +65,13 @@ async def ac() -> AsyncGenerator[AsyncClient, Any]:
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def register_user(ac, setup_database):
-
-    await ac.post("/auth/register", json={"email": "kot@pes.ru",
-                                                         "password": "123456",
-                                                         "first_name": "Kot",
-                                                         "last_name": "Pes"})
+async def register_user(ac: AsyncClient, setup_database):
+    await ac.post("/auth/register", json={"email": "kot@pes.com", "password": "1234"})
 
 
-@pytest.fixture(scope="session", autouse=True)
-async def authenticate_ac(ac, register_user):
-    result = await ac.post("/auth/login", json={"email": "kot@pes.ru",
-                                                         "password": "123456",
-                                                         "first_name": "Kot",
-                                                         "last_name": "Pes"})
-
-    assert result.cookies
-    assert result.cookies.get("access_token")
-    assert result.status_code == 200
+@pytest.fixture(scope="session")
+async def authenticated_ac(register_user, ac: AsyncClient):
+    await ac.post("/auth/login", json={"email": "kot@pes.com", "password": "1234"})
+    assert ac.cookies["access_token"]
+    yield ac
 

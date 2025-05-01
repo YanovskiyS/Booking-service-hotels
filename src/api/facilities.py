@@ -1,8 +1,5 @@
-from datetime import date
-from fastapi import Query, Body, APIRouter
-import json
+from fastapi import APIRouter
 
-from watchfiles import awatch
 from fastapi_cache.decorator import cache
 
 from src.schemas.facilities import FacilityAdd
@@ -12,7 +9,7 @@ from src.tasks.tasks import test_tasks
 router = APIRouter(prefix="/facilities", tags=["Удобства"])
 
 @router.get("")
-#@cache(expire=10)
+@cache(expire=10)
 async def get_facilities(db: DBDep):
     return await db.facilities.get_all()
 

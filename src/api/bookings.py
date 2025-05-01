@@ -1,14 +1,6 @@
-from fastapi import Query, Body, APIRouter
-from datetime import date
-
-from watchfiles import awatch
+from fastapi import APIRouter
 
 from src.api.dependencies import UserIdDep
-from src.database import async_session_maker
-
-
-from src.repositories.bookings import BookingsRepository
-
 from src.schemas.bookings import BookingAdd, BookingAddRequest
 from src.api.dependencies import DBDep
 
@@ -17,9 +9,10 @@ router = APIRouter(prefix="/bookings", tags=["Бронирования"])
 @router.post("")
 async def create_booking(db: DBDep, user_id: UserIdDep,  booking_data: BookingAddRequest):
     room = await db.rooms.get_one_or_none(id=booking_data.room_id)
+    hotel = await db.hotels.get_one_or_none(id=room.hotel_id)
     total_price = (booking_data.date_to - booking_data.date_from).days * room.price
     _booking_data = BookingAdd(user_id=user_id, price=total_price, **booking_data.model_dump())
-    booking = await db.bookings.add_booking(_booking_data)
+    booking = await db.bookings.add_booking(_booking_data, hotel_id=hotel.id)
     await db.commit()
 
     return {"status": "Ok", "data": booking}

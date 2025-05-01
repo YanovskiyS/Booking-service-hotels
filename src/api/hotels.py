@@ -4,8 +4,6 @@ from fastapi import Query, Body, APIRouter
 from fastapi_cache.decorator import cache
 
 
-from src.database import async_session_maker, engine
-from src.repositories.hotels import HotelsRepository
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.api.dependencies import PaginationDep, DBDep
 

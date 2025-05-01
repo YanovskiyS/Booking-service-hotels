@@ -1,6 +1,6 @@
 
 
-from fastapi import Body, APIRouter
+from fastapi import APIRouter
 from datetime import date
 
 
@@ -20,7 +20,7 @@ async def get_rooms(hotel_id: int, db: DBDep,
     return await db.rooms.get_filtered_by_time(hotel_id=hotel_id, date_from=date_from, date_to=date_to)
 
 @router.get("/{hotel_id}/rooms/{room_id}")
-async def get_rooms(db: DBDep, hotel_id: int, room_id: int):
+async def get_room(db: DBDep, hotel_id: int, room_id: int):
     return await db.rooms.get_one_or_none(hotel_id=hotel_id, id=room_id)
 
 
