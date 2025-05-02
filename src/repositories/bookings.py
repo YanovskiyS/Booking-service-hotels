@@ -3,13 +3,13 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select
 
+from src.exceptions import AllRoomsAreBookedException
 from src.models.bookings import BookingsOrm
 from src.models.rooms import RoomsOrm
 
 from src.repositories.base import BaseRepository
 from src.repositories.mappers.mappers import BookingDataMapper
 from src.repositories.utils import rooms_ids_for_booking
-
 
 
 class BookingsRepository(BaseRepository):
@@ -22,25 +22,20 @@ class BookingsRepository(BaseRepository):
         return result.scalars().one_or_none()
 
     async def get_bookings_with_checkin(self):
-        query = (
-            select(BookingsOrm).filter(BookingsOrm.date_from == date.today())
-        )
+        query = select(BookingsOrm).filter(BookingsOrm.date_from == date.today())
 
         result = await self.session.execute(query)
-        return [self.mapper.map_to_domain_entity(booking) for booking in result.scalars().all()]
+        return [
+            self.mapper.map_to_domain_entity(booking)
+            for booking in result.scalars().all()
+        ]
 
     async def add_booking(self, data: BaseModel, hotel_id: int):
-        room_ids_for_booking = rooms_ids_for_booking(data.date_from, data.date_to, hotel_id=hotel_id)
+        room_ids_for_booking = rooms_ids_for_booking(
+            data.date_from, data.date_to, hotel_id=hotel_id
+        )
         result = await self.session.execute(room_ids_for_booking)
         if data.room_id in result.scalars().all():
             new_booking = await self.add(data)
             return new_booking
-        else:
-            raise HTTPException(500)
-
-
-
-
-
-
-
+        raise AllRoomsAreBookedException

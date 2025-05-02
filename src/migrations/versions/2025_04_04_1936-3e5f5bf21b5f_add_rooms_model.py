@@ -9,8 +9,6 @@ Create Date: 2025-04-04 19:36:49.435478
 from typing import Sequence, Union
 
 
-
-
 # revision identifiers, used by Alembic.
 revision: str = "3e5f5bf21b5f"
 down_revision: Union[str, None] = "94065c80ed59"
@@ -24,9 +22,7 @@ def upgrade() -> None:
     pass
 
 
-
 def downgrade() -> None:
     """Downgrade schema."""
 
     pass
-

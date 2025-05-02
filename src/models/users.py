@@ -4,7 +4,6 @@ from sqlalchemy import String
 from src.database import Base
 
 
-
 class UsersOrm(Base):
     __tablename__ = "users"
 
@@ -13,4 +12,3 @@ class UsersOrm(Base):
     last_name: Mapped[str] = mapped_column(String(100))
     email: Mapped[str] = mapped_column(String(100), unique=True)
     hashed_password: Mapped[str] = mapped_column(String(100))
-

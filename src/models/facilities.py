@@ -20,6 +20,7 @@ class FacilitiesOrm(Base):
         secondary="rooms_facilities",
     )
 
+
 class RoomsFacilitiesOrm(Base):
     __tablename__ = "rooms_facilities"
 

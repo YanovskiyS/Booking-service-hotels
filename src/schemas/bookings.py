@@ -15,5 +15,6 @@ class BookingAddRequest(BaseModel):
     date_to: date
     room_id: int
 
+
 class Booking(BookingAdd):
     id: int
