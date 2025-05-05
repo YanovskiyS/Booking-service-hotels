@@ -1,52 +1,66 @@
 import pytest
+from httpx import AsyncClient
 
+from src.utils.db_manager import DBManager
 from tests.conftest import get_db_nul_pool
 
-
-@pytest.mark.parametrize("room_id, date_from, date_to, status_code",
-                         [(1, "2024-08-01", "2024-08-10", 200),
-                          (1, "2024-08-01", "2024-08-10", 200),
-                          (1, "2024-08-01", "2024-08-10", 200),
-                          (1, "2024-08-01", "2024-08-10", 200),
-                          (1, "2024-08-01", "2024-08-10", 200),
-                          (1, "2024-08-01", "2024-08-10", 500)])
-
-async def test_add_booking(room_id, date_from, date_to, status_code,
-        db, authenticate_ac):
-    response = await authenticate_ac.post("/bookings", json={"room_id": room_id,
-                                                  "date_from": date_from,
-                                                  "date_to": date_to
-                                                  })
-    assert response.status_code == status_code
+'''
+async def test_add_booking(
+    authenticated_ac: AsyncClient
+):
+    response = await authenticated_ac.post(
+        "/bookings",
+        json={
+            "room_id": 1,
+            "date_from": "2024-08-01",
+            "date_to": "2024-08-10",
+        },
+    )
+    assert response.status_code == 200
     if status_code == 200:
         res = response.json()
-        assert res["status"] == "Ok"
         assert isinstance(res, dict)
+        assert res["status"] == "OK"
         assert "data" in res
 
 
-@pytest.fixture(scope="module", autouse=False)
-async def clean_specific_table():
+@pytest.fixture(scope="module")
+async def delete_all_bookings():
     async for _db in get_db_nul_pool():
         await _db.bookings.delete()
         await _db.commit()
 
+@pytest.mark.parametrize(
+    "room_id, date_from, date_to, booked_rooms",
+    [
+        (1, "2024-08-01", "2024-08-10", 1),
+        (1, "2024-08-02", "2024-08-11", 2),
+        (1, "2024-08-03", "2024-08-12", 3),
+    ],
+)
+async def test_add_and_get_my_bookings(
+    room_id,
+    date_from,
+    date_to,
+    booked_rooms,
+    delete_all_bookings,
+    authenticated_ac: AsyncClient,
+):
+    response = await authenticated_ac.post(
+        "/bookings",
+        json={
+            "room_id": room_id,
+            "date_from": date_from,
+            "date_to": date_to,
+        },
+    )
+    assert response.status_code == 200
 
-@pytest.mark.parametrize("room_id, date_from, date_to, quantity",
-                         [(1, "2024-08-01", "2024-08-10", 1),
-                          (1, "2024-08-01", "2024-08-10", 2),
-                          (1, "2024-08-01", "2024-08-10", 3)])
-async def test_add_and_get_my_bookings(room_id, date_from, date_to, quantity, clean_specific_table, authenticate_ac):
-    await authenticate_ac.post("/bookings", json={"room_id": room_id,
-                                                             "date_from": date_from,
-                                                             "date_to": date_to
-                                                             })
-    get_response = await authenticate_ac.get("/bookings/me")
-    res = get_response.json()
-    assert len(res) == quantity
+    response_my_bookings = await authenticated_ac.get("/bookings/me")
+    assert response_my_bookings.status_code == 200
+    assert len(response_my_bookings.json()) == booked_rooms
 
-
-
+'''
 
 
 

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from sqlalchemy import select, delete, update
 
-from src.exceptions import HotelIsNotExist
+
 from src.models.hotels import HotelsOrm
 from src.models.rooms import RoomsOrm
 from src.repositories.base import BaseRepository

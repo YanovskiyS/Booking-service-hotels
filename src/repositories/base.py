@@ -1,10 +1,14 @@
-from kombu.abstract import Object
+import logging
+
+from asyncpg import UniqueViolationError
 from pydantic import BaseModel
 from sqlalchemy import select, delete, update
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.dialects.mysql import insert
 
-from src.exceptions import ObjectNotFoundException, HotelIsNotExist
+from src.exceptions import ObjectNotFoundException, UserWithThisEmailAlreadyExist
+
+
 from src.repositories.mappers.base import DataMapper
 
 
@@ -44,15 +48,23 @@ class BaseRepository:
         return self.mapper.map_to_domain_entity(model)
 
     async def add(self, data: BaseModel):
-        add_data_stmt = (
-            insert(self.model).values(**data.model_dump()).returning(self.model)
-        )
         try:
+            add_data_stmt = (
+            insert(self.model).values(**data.model_dump()).returning(self.model)
+            )
             result = await self.session.execute(add_data_stmt)
-        except IntegrityError:
-            raise HotelIsNotExist
-        model = result.scalars().one()
-        return self.mapper.map_to_domain_entity(model)
+            model = result.scalars().one()
+            return self.mapper.map_to_domain_entity(model)
+        except IntegrityError as err:
+            logging.exception(
+                f"Не удалось добавить данные в БД")
+            if isinstance(err.orig.__cause__, UniqueViolationError):
+                raise UserWithThisEmailAlreadyExist from err
+            else:
+                logging.exception(f"Незнакомая ошибка")
+                raise err
+
+
 
     async def edit(
         self, data: BaseModel, exclude_unset: bool = False, **filter_by

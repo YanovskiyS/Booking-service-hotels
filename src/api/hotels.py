@@ -4,9 +4,10 @@ from fastapi import HTTPException
 from fastapi import Query, Body, APIRouter
 from fastapi_cache.decorator import cache
 
-from src.exceptions import HotelIsNotExist
+
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.api.dependencies import PaginationDep, DBDep
+from src.services.hotels import HotelService
 
 router = APIRouter(prefix="/hotels", tags=["Отели"])
 
@@ -21,23 +22,18 @@ async def get_hotels(
     location: str | None = Query(None, description="Расположение"),
     title: str | None = Query(None, description="Название отеля"),
 ):
-    per_page = paginations.per_page or 5
-    if date_to < date_from:
-        raise HTTPException(status_code=409, detail="Дата выезда позже даты заезда")
-    return await db.hotels.get_filtered_by_time(
-        date_from=date_from,
-        date_to=date_to,
-        location=location,
-        title=title,
-        limit=per_page,
-        offset=per_page * (paginations.page - 1),
-    )
+
+    return await HotelService(db).get_filtered_by_time(paginations,
+                                          date_from,
+                                          date_to,
+                                          location,
+                                          title)
 
 
 @router.get("/{hotels_id}")
 async def get_hotel(hotel_id: int, db: DBDep):
     try:
-        return await db.hotels.get_by_id(hotel_id)
+        return await HotelService(db).get_hotel(hotel_id)
     except HotelIsNotExist as err:
         raise HTTPException(status_code=404, detail=err.detail)
 
@@ -64,23 +60,24 @@ async def create_hotel(
         }
     ),
 ):
-    hotel = await db.hotels.add(hotel_data)
+    hotel = await HotelService(db).create_hotel(hotel_data)
     return {"status": "Ok", "data": hotel}
 
 
 @router.put("/{hotel_id}")
 async def full_update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAdd):
-    await db.hotels.edit(hotel_data, id=hotel_id)
+    await HotelService(db).full_update_hotel(hotel_data, id=hotel_id)
     return {"status": "Ok"}
 
 
 @router.patch("/{hotel_id}")
 async def partial_update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelPatch):
-    await db.hotels.edit(hotel_data, exclude_unset=True, id=hotel_id)
+    await HotelService(db).partial_update_hotel(hotel_data, hotel_id, exclude_unset=True)
+
     return {"status": "Ok"}
 
 
 @router.delete("/{hotel_id}")
 async def delete_hotel(db: DBDep, hotel_id: int):
-    await db.hotels.delete(id=hotel_id)
+    await HotelService(db).delete_hotel(hotel_id)
     return {"status": "Ok"}

@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from time import sleep
 from PIL import Image
 import os
@@ -16,6 +17,7 @@ def test_tasks():
 
 @celery_instance.task
 def resize_image(input_path: str, output_dir="src/static/images"):
+    logging.debug(f"Вызываеться функция с imagePath c {input_path}")
     try:
         # Открываем изображение
         with Image.open(input_path) as img:
@@ -43,7 +45,7 @@ def resize_image(input_path: str, output_dir="src/static/images"):
                 # Сохраняем сжатое изображение в формате JPEG с качеством 85%
                 resized_img.save(output_path, "JPEG", quality=85)
 
-            print(f"Изображения успешно сохранены в {output_dir}")
+            logging.info(f"Изображения успешно сохранены в {output_dir}")
 
     except Exception as e:
         print(f"Ошибка при обработке изображения: {e}")
@@ -52,7 +54,7 @@ def resize_image(input_path: str, output_dir="src/static/images"):
 async def get_bookings_with_today_checkin_helper():
     async with DBManager(session_factory=async_session_maker_null_pool) as db:
         bookings = await db.bookings.get_bookings_with_checkin()
-        print(f"{bookings}")
+        logging.debug(f"{bookings}")
 
 
 @celery_instance.task(name="booking_today_checkin")
