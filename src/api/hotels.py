@@ -4,7 +4,7 @@ from fastapi import HTTPException
 from fastapi import Query, Body, APIRouter
 from fastapi_cache.decorator import cache
 
-
+from src.exceptions import HotelIsNotExist
 from src.schemas.hotels import HotelPatch, HotelAdd
 from src.api.dependencies import PaginationDep, DBDep
 from src.services.hotels import HotelService

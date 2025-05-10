@@ -4,7 +4,7 @@ from httpx import AsyncClient
 from src.utils.db_manager import DBManager
 from tests.conftest import get_db_nul_pool
 
-'''
+
 async def test_add_booking(
     authenticated_ac: AsyncClient
 ):
@@ -17,10 +17,10 @@ async def test_add_booking(
         },
     )
     assert response.status_code == 200
-    if status_code == 200:
+    if response.status_code == 200:
         res = response.json()
         assert isinstance(res, dict)
-        assert res["status"] == "OK"
+        assert res["status"] == "Ok"
         assert "data" in res
 
 
@@ -60,7 +60,7 @@ async def test_add_and_get_my_bookings(
     assert response_my_bookings.status_code == 200
     assert len(response_my_bookings.json()) == booked_rooms
 
-'''
+
 
 
 

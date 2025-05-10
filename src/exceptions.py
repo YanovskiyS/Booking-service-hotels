@@ -49,3 +49,12 @@ class UserNotFoundException(BronirovanieException):
 class UserWithThisEmailAlreadyHTTPExist(BronirovanieException):
     status_code = 409
     detail = "Пользователь с таким email уже существует"
+
+class EmailNotRegisteredException(BronirovanieException):
+    detail = "Пользователдь не бы зарегестрирован"
+
+class HotelIsNotExist(BronirovanieException):
+    detail = ("Данного отеля не существует")
+
+class ObjectAlreadyExistsException(BronirovanieException):
+    detail = "Данный обьект уже существует"

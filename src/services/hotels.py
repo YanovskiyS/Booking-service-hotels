@@ -29,7 +29,7 @@ class HotelService(BaseService):
         return await self.db.hotels.get_by_id(hotel_id)
 
     async def create_hotel(self, data: HotelAdd):
-        hotel = self.db.hotels.add(data)
+        hotel = await self.db.hotels.add(data)
         await self.db.commit()
         return hotel
 
