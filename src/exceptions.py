@@ -23,30 +23,37 @@ class HotelNotFoundException(BronirovanieException):
 class RoomNotFoundException(ObjectNotFoundException):
     detail = "Данной комнаты не существует"
 
-class RoomNotFoundHTTPException(BronirovanieException):
+class BronirovanieHTTPException(HTTPException):
+    status_code = 500
+    detail = None
+
+    def __init__(self):
+        super().__init__(status_code=self.status_code, detail=self.detail)
+
+class RoomNotFoundHTTPException(BronirovanieHTTPException):
     status_code = 404
     detail = "Данного номера не существует"
 
-class HotelNotFoundHTTPException(BronirovanieException):
+class HotelNotFoundHTTPException(BronirovanieHTTPException):
     status_code = 404
     detail = "Данного отеля не существует"
 
-class AllRoomsAreBookedHTTPException(BronirovanieException):
+class AllRoomsAreBookedHTTPException(BronirovanieHTTPException):
     status_code = 404
     detail = "Не осталось свободных номеров"
 
-class IncorrectPasswordException(BronirovanieException):
+class IncorrectPasswordException(BronirovanieHTTPException):
     detail = "Пароль не верный"
 
 
-class IncorrectPasswordHTTPException(BronirovanieException):
+class IncorrectPasswordHTTPException(BronirovanieHTTPException):
     status_code = 401
     detail = "Пароль не верный"
 
 class UserNotFoundException(BronirovanieException):
     detail = "Данного пользователя не существует"
 
-class UserWithThisEmailAlreadyHTTPExist(BronirovanieException):
+class UserWithThisEmailAlreadyHTTPExist(BronirovanieHTTPException):
     status_code = 409
     detail = "Пользователь с таким email уже существует"
 

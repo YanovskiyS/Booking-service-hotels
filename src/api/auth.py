@@ -5,7 +5,7 @@ from src.api.dependencies import UserIdDep, DBDep
 from src.database import async_session_maker
 from src.exceptions import UserWithThisEmailAlreadyExist, IncorrectPasswordHTTPException
 from src.repositories.users import UsersRepository
-from src.schemas.users import UserRequestAdd
+from src.schemas.users import UserRequestAdd, UserLogin
 from src.schemas.users import UserAdd
 from src.services.auth import AuthService
 
@@ -13,7 +13,7 @@ router = APIRouter(prefix="/auth", tags=["Авторизация и аутент
 
 
 @router.post("/login")
-async def login_user(db: DBDep, data: UserRequestAdd, response: Response):
+async def login_user(db: DBDep, data: UserLogin, response: Response):
     try:
         access_token = await AuthService(db).login_user(data)
     except IncorrectPasswordHTTPException:

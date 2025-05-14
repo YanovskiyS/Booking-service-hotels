@@ -7,6 +7,9 @@ class UserRequestAdd(BaseModel):
     first_name: str
     last_name: str
 
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
 
 class UserAdd(BaseModel):
     email: EmailStr
@@ -18,6 +21,8 @@ class UserAdd(BaseModel):
 class User(BaseModel):
     id: int
     email: EmailStr
+    first_name: str
+    last_name: str
 
 
 class UserWithHashedPassword(User):
