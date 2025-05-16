@@ -3,22 +3,22 @@ services:
     container_name: 'booking_back'
     image: booking-api-image:latest
     networks:
-      - myNetwork
+      - MyNetwork
 
   booking_celery_worker_service:
     container_name: 'booking_celery_worker'
     image: booking-api-image:latest
     networks:
-      - myNetwork
+      - MyNetwork
     command: "celery --app=src.tasks.celery_app:celery_instance worker -l INFO"
 
   booking_celery_beat_service:
     container_name: 'booking_celery_beat'
     image: booking-api-image:latest
     networks:
-      - myNetwork
+      - MyNetwork
     command: "celery --app=src.tasks.celery_app:celery_instance beat -l INFO"
 
 networks:
-  myNetwork:
+  MyNetwork:
     external: true
