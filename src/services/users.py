@@ -1,11 +1,16 @@
 from src.api.dependencies import UserIdDep
 from src.database import async_session_maker
-from src.exceptions import IncorrectPasswordException, UserNotFoundException, UserWithThisEmailAlreadyExist
+from src.exceptions import (
+    IncorrectPasswordException,
+    UserNotFoundException,
+    UserWithThisEmailAlreadyExist,
+)
 from src.repositories.users import UsersRepository
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.services.auth import AuthService
 from src.services.base import BaseService
 from fastapi import Response
+
 
 class UserService(BaseService):
     async def login_user(self, data: UserRequestAdd, response: Response):

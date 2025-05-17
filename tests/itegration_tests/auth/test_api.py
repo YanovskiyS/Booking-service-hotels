@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.parametrize(
     "email, password, first_name, last_name, status_code",
     [
@@ -8,30 +9,40 @@ import pytest
         ("abcde@abc", "1235", "string", "string", 422),
     ],
 )
-async def test_registration_flow(email, password, first_name, last_name, status_code, ac):
-    #/register
-    resp_reg = await ac.post("/auth/register", json={
-                "email": email,
-                "password": password,
-                "first_name": first_name,
-                "last_name": last_name
-})
+async def test_registration_flow(
+    email, password, first_name, last_name, status_code, ac
+):
+    # /register
+    resp_reg = await ac.post(
+        "/auth/register",
+        json={
+            "email": email,
+            "password": password,
+            "first_name": first_name,
+            "last_name": last_name,
+        },
+    )
 
     assert resp_reg.status_code == status_code
     if status_code != 200:
         return
 
-    #/ login
-    resp_login = await ac.post("/auth/login", json={"email": email,
-                "password": password,
-                "first_name": first_name,
-                "last_name": last_name})
+    # / login
+    resp_login = await ac.post(
+        "/auth/login",
+        json={
+            "email": email,
+            "password": password,
+            "first_name": first_name,
+            "last_name": last_name,
+        },
+    )
 
     assert resp_login.status_code == 200
     assert ac.cookies["access_token"]
     assert "access_token" in resp_login.json()
 
-    #/ me
+    # / me
 
     resp_me = await ac.get("/auth/me")
     assert resp_me.status_code == 200
@@ -41,7 +52,7 @@ async def test_registration_flow(email, password, first_name, last_name, status_
     assert "password" not in user
     assert "hashed_password" not in user
 
-    #/logout
+    # /logout
     resp_logout = await ac.post("/auth/logout")
     assert resp_logout.status_code == 200
     assert "access_token" not in ac.cookies

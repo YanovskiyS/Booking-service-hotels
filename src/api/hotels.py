@@ -22,12 +22,9 @@ async def get_hotels(
     location: str | None = Query(None, description="Расположение"),
     title: str | None = Query(None, description="Название отеля"),
 ):
-
-    return await HotelService(db).get_filtered_by_time(paginations,
-                                          date_from,
-                                          date_to,
-                                          location,
-                                          title)
+    return await HotelService(db).get_filtered_by_time(
+        paginations, date_from, date_to, location, title
+    )
 
 
 @router.get("/{hotels_id}")
@@ -72,7 +69,9 @@ async def full_update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelAdd):
 
 @router.patch("/{hotel_id}")
 async def partial_update_hotel(db: DBDep, hotel_id: int, hotel_data: HotelPatch):
-    await HotelService(db).partial_update_hotel(hotel_data, hotel_id, exclude_unset=True)
+    await HotelService(db).partial_update_hotel(
+        hotel_data, hotel_id, exclude_unset=True
+    )
 
     return {"status": "Ok"}
 

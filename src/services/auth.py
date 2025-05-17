@@ -1,11 +1,15 @@
-from fastapi import HTTPException, Response
+from fastapi import HTTPException
 from passlib.context import CryptContext
 import jwt
 from datetime import datetime, timezone, timedelta
 
 
 from src.config import settings
-from src.exceptions import UserNotFoundException, IncorrectPasswordException, UserWithThisEmailAlreadyExist
+from src.exceptions import (
+    UserNotFoundException,
+    IncorrectPasswordException,
+    UserWithThisEmailAlreadyExist,
+)
 from src.schemas.users import UserRequestAdd, UserAdd
 from src.services.base import BaseService
 
@@ -40,15 +44,13 @@ class AuthService(BaseService):
             raise HTTPException(status_code=401, detail="Неверный токен")
 
     async def login_user(self, data: UserRequestAdd):
-            user = await self.db.users.get_user_with_hashed_password(
-                email=data.email
-            )
-            if not user:
-                raise UserNotFoundException()
-            if not self.verify_password(data.password, user.hashed_password):
-                raise IncorrectPasswordException()
-            access_token = self.create_access_token({"user_id": user.id})
-            return access_token
+        user = await self.db.users.get_user_with_hashed_password(email=data.email)
+        if not user:
+            raise UserNotFoundException()
+        if not self.verify_password(data.password, user.hashed_password):
+            raise IncorrectPasswordException()
+        access_token = self.create_access_token({"user_id": user.id})
+        return access_token
 
     async def register_user(self, data: UserRequestAdd):
         hashed_password = self.hash_password(data.password)

@@ -1,16 +1,15 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from datetime import date
 
-from watchfiles import awatch
 
 from src.api.dependencies import DBDep
-from src.database import async_session_maker
-from src.exceptions import ObjectNotFoundException, RoomNotFoundException, RoomNotFoundHTTPException, \
-    HotelNotFoundException, HotelNotFoundHTTPException
-from src.repositories.rooms import RoomsRepository
-from src.schemas.facilities import RoomFacilityAdd
-from src.schemas.rooms import RoomAdd, RoomPatch, RoomAddRequest, RoomPatchRequest
-from src.services.hotels import HotelService
+from src.exceptions import (
+    RoomNotFoundException,
+    RoomNotFoundHTTPException,
+    HotelNotFoundException,
+    HotelNotFoundHTTPException,
+)
+from src.schemas.rooms import RoomAddRequest, RoomPatchRequest
 from src.services.rooms import RoomService
 
 router = APIRouter(prefix="/hotels", tags=["Номера"])

@@ -1,4 +1,3 @@
-from debugpy.adapter import access_token
 from fastapi import APIRouter, HTTPException, Response
 
 from src.api.dependencies import UserIdDep, DBDep
@@ -17,7 +16,7 @@ async def login_user(db: DBDep, data: UserLogin, response: Response):
     try:
         access_token = await AuthService(db).login_user(data)
     except IncorrectPasswordHTTPException:
-         raise IncorrectPasswordHTTPException
+        raise IncorrectPasswordHTTPException
     response.set_cookie("access_token", access_token)
     return {"access_token": access_token}
 
@@ -33,7 +32,7 @@ async def register_user(db: DBDep, data: UserRequestAdd):
         hashed_password=hashed_password,
     )
     try:
-        user = await db.users.add_user(new_user_data)
+        await db.users.add_user(new_user_data)
     except UserWithThisEmailAlreadyExist as err:
         raise HTTPException(status_code=409, detail=err.detail)
     await db.commit()

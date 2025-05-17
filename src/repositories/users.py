@@ -1,4 +1,3 @@
-from asyncpg import UniqueViolationError
 from pydantic import EmailStr, BaseModel
 from sqlalchemy import select, insert
 from sqlalchemy.exc import IntegrityError

@@ -7,12 +7,14 @@ from src.services.base import BaseService
 
 
 class HotelService(BaseService):
-    async def get_filtered_by_time(self, paginations,
-                                   date_from: date,
-                                   date_to: date,
-                                   location: str | None,
-                                   title: str | None,
-                                   ):
+    async def get_filtered_by_time(
+        self,
+        paginations,
+        date_from: date,
+        date_to: date,
+        location: str | None,
+        title: str | None,
+    ):
         if date_to < date_from:
             raise HTTPException(status_code=409, detail="Дата выезда позже даты заезда")
         per_page = paginations.per_page or 5
